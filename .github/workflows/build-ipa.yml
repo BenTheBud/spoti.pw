@@ -40,11 +40,13 @@ jobs:
           python3 -m pip install --break-system-packages git+https://github.com/asdfzxcvbn/pyzule-rw.git
 
       - name: Download IPA
+        env:
+          IPA_URL: ${{ inputs.ipa_url }}
         run: |
           mkdir -p ipa
-          curl -fsSL "${{ inputs.ipa_url }}" -o ipa/spotify.ipa
-          case "$(file --mime-type -b ipa/spotify.ipa)" in application/zip|application/x-ios-app) ;; *) echo "::error::Not an IPA"; exit 1 ;; esac
-
+          python3 -m pip install --break-system-packages gdown
+          python3 -m gdown "$IPA_URL" -O ipa/spotify.ipa
+          unzip -t ipa/spotify.ipa >/dev/null || { echo "::error::Not a valid IPA"; exit 1; }
       - run: make release
 
       - uses: actions/upload-artifact@v5
